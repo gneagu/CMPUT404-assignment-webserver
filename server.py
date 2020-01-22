@@ -60,25 +60,25 @@ class MyWebServer(socketserver.BaseRequestHandler):
             elif file_extension == "html":
                 data = "text/html"
 
-            #No extension so could be folder.
-            elif file_extension == file and file[-1] != "/":
-                file = file + "/"
+            #Check explicitly if the folder exists.
+            elif os.path.isdir("www" + file):
+                #Need to see if url is formatted properly. If not, redirect.
+                if file[-1] != "/":
+                    file = file + "/"
 
-                #If file is a folder, then return redirect.
-                if os.path.isdir("www" + file):
                     response = "HTTP/1.1 301 Moved Permanently\n" + \
                     "Location: localhost:8080/deep/" + \
                     "Content-Type: text/html\n\n"
                     self.request.sendall(bytearray(response,'utf-8'))
                     return
+                #URL is formatted properly.
+                else:
+                    response = "HTTP/1.1 200 OK\n" + \
+                    "Content-Type: text/html\n\n"
+                    self.request.sendall(bytearray(response,'utf-8'))
+                    return
 
-            #Check explicitly if the folder exists. 
-            elif os.path.isdir("www" + file):
-                response = "HTTP/1.1 200 OK\n" + \
-                "Content-Type: text/html\n\n"
-                self.request.sendall(bytearray(response,'utf-8'))
-                return
-
+            #If url doesn't trip above then valid url.
             lines = open("www{}".format(file), "r")
             document = "".join(lines)
             response = "HTTP/1.1 200 OK\n" + \

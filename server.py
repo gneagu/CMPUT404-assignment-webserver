@@ -1,5 +1,6 @@
 #  coding: utf-8
 import socketserver
+import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 #
@@ -40,9 +41,20 @@ class MyWebServer(socketserver.BaseRequestHandler):
         command = request_string.split(" ")[0]
         file = request_string.split(" ")[1]
 
+        #Have the correct path, otherwise I'm not dealing with it.
+        if "/../" in file:
+            self.request.sendall(bytearray("HTTP/1.1 404 Not Found",'utf-8'))
+            return
+
+
+        print("BEFORE")
+
+
         #Check of method POST/PUT/DELETE (Return 405)
         if command in ["POST", "PUT", "DELETE"]:
             self.request.sendall(bytearray("HTTP/1.1 405 Method Not Allowed",'utf-8'))
+
+
 
         try:
             # print("BEFORE")
@@ -55,6 +67,19 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 data = "text/html"
             elif file_extension == file and file[-1] != "/":
                 file = file + "/"
+                print("HERE", file)
+                if os.path.isdir("www" + file):
+                    print("ALSO")
+                # pass
+                    response = "HTTP/1.1 301 Moved Permanently\n" + \
+                    "Location: localhost:8080/deep/" + \
+                    "Content-Type: text/html\n\n"
+                    self.request.sendall(bytearray(response,'utf-8'))
+                    return
+
+
+            # print(file)
+            print(file)
             lines = open("www{}".format(file), "r")
             document = "".join(lines)
 
@@ -68,18 +93,27 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.request.sendall(bytearray(response,'utf-8'))
         except Exception as e:
             if e.errno == 2: #Means that the file doesn't exist
-                # print(e.errno)
+                print(e.errno)
                 self.request.sendall(bytearray("HTTP/1.1 404 Not Found",'utf-8'))
             elif e.errno == 21: #This means that you're accessing a folder
-                # print(e.errno)
                 response = "HTTP/1.1 200 OK\n" + \
                 "Content-Type: text/html\n\n"
                 self.request.sendall(bytearray(response,'utf-8'))
+                # if os.path.isdir(file):
+                #     response = "HTTP/1.1 200 OK\n" + \
+                #     "Content-Type: text/html\n\n"
+                #     self.request.sendall(bytearray(response,'utf-8'))
+                # else:
+                #     response = "HTTP/1.1 301 Moved Permanently\n" + \
+                #     "Location: localhost:8080/deep/" + \
+                #     "Content-Type: text/html\n\n"
+                #     self.request.sendall(bytearray(response,'utf-8'))
+
             else:
-                self.request.sendall(bytearray("HTTP/1.1 405 OK",'utf-8'))
                 print("Different error {}".format(e))
+                self.request.sendall(bytearray("HTTP/1.1 405 OK",'utf-8'))
 
-
+        print("AFTER")
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080

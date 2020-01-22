@@ -3,6 +3,7 @@
 python3 server.py &
 ID=$!
 python3 freetests.py
+# python3 custom.py
 python3 not-free-tests.py
 kill $ID
 #pkill -P $$

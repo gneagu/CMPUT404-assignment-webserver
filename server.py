@@ -1,8 +1,8 @@
-#  coding: utf-8
+#neagu
 import socketserver
 import os
 
-# Copyright 2013 Abram Hindle, Eddie Antonio Santos
+# Copyright 2013 Abram Hindle, Eddie Antonio Santos, Gregory Neagu
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,8 +33,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
     #handle function does all the work in this server.
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        # print ("Got a request of: %s\n" % self.data)
+        print ("Got a request of: %s\n" % self.data)
 
+        # This code is referenced in README as being from Luky
         split_string = self.data.decode('utf-8').split('\r\n')
         request_string = split_string[0].split(" ")
         command = request_string[0]

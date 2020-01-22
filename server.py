@@ -32,7 +32,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     #handle function does all the work in this server.
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
+        # print ("Got a request of: %s\n" % self.data)
         # print(type(self.client_address))
         # print(self.client_address)
         split_string = self.data.decode('utf-8').split('\r\n')
@@ -45,21 +45,41 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.request.sendall(bytearray("HTTP/1.1 405 Method Not Allowed",'utf-8'))
 
         try:
-            file = open("www{}".format(file), "r")
-        except :
-            self.request.sendall(bytearray("HTTP/1.1 404 Not Found",'utf-8'))
+            # print("BEFORE")
+            file_extension = file.split(".")[-1]
+            data = "text/html"
 
-        #     self.wfile.write()
+            if file_extension == "css":
+                data = "text/css"
+            elif file_extension == "html":
+                data = "text/html"
+            elif file_extension == file and file[-1] != "/":
+                file = file + "/"
+            lines = open("www{}".format(file), "r")
+            document = "".join(lines)
+
+            # print("AFTER")
+            response = "HTTP/1.1 200 OK\n" + \
+            "Content-Type: {}\n\n".format(data) + \
+            document
 
 
-        print("FILE: {}".format(command))
-        # try:
+
+            self.request.sendall(bytearray(response,'utf-8'))
+        except Exception as e:
+            if e.errno == 2: #Means that the file doesn't exist
+                # print(e.errno)
+                self.request.sendall(bytearray("HTTP/1.1 404 Not Found",'utf-8'))
+            elif e.errno == 21: #This means that you're accessing a folder
+                # print(e.errno)
+                response = "HTTP/1.1 200 OK\n" + \
+                "Content-Type: text/html\n\n"
+                self.request.sendall(bytearray(response,'utf-8'))
+            else:
+                self.request.sendall(bytearray("HTTP/1.1 405 OK",'utf-8'))
+                print("Different error {}".format(e))
 
 
-
-        # for i in split_string:
-        #     print(i, 'Host:' in i)
-        self.request.sendall(bytearray("HTTP/1.1 200 OK",'utf-8'))
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
